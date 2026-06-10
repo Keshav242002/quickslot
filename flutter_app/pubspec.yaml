@@ -1,0 +1,47 @@
+name: quickslot
+description: "QuickSlot - Sports venue slot booking app"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.10.7
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.8
+
+  # State Management
+  flutter_bloc: ^9.1.0
+  equatable: ^2.0.7
+
+  # Networking
+  dio: ^5.8.0
+
+  # Firebase
+  firebase_core: ^3.13.0
+  firebase_auth: ^5.5.2
+
+  # Google Sign-In (Bonus F8)
+  google_sign_in: ^6.2.2
+
+  # UI
+  google_fonts: ^6.2.1
+  intl: ^0.20.2
+  shimmer: ^3.0.0
+  flutter_staggered_animations: ^1.1.1
+
+  # Utils
+  cached_network_image: ^3.4.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  bloc_test: ^10.0.0
+  mocktail: ^1.0.4
+  flutter_lints: ^5.0.0
+
+flutter:
+  uses-material-design: true

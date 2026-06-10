@@ -4,6 +4,15 @@ A full-stack mobile application for booking sports venue slots (badminton courts
 
 ---
 
+## 📦 Downloads & Demo
+
+| | |
+|---|---|
+| **Demo Video** | [Watch on Google Drive](https://drive.google.com/file/d/1IvW1CsQel80ZfEfpGgMa4KrALkGO1rVw/view?usp=drivesdk) |
+| **Flutter APK** | [Download from Google Drive](https://drive.google.com/drive/folders/1t1GVjqvAXQ6acfli4OgFKuUcWJV3fTV-?usp=drive_link) |
+
+---
+
 ## 🏗️ Architecture
 
 ### Backend — Python / Django REST Framework

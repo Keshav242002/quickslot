@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db import IntegrityError
+from django.utils import timezone
 from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -59,6 +60,8 @@ class SlotListView(APIView):
 
         _generate_slots_for_date(venue, target_date)
         slots = Slot.objects.filter(venue=venue, date=target_date)
+        if target_date == timezone.localdate():
+            slots = slots.filter(start_time__gt=timezone.localtime(timezone.now()).time())
         return Response(SlotSerializer(slots, many=True).data)
 
 

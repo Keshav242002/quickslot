@@ -17,15 +17,17 @@ class SlotSerializer(serializers.ModelSerializer):
 
 
 class SlotMinimalSerializer(serializers.ModelSerializer):
+    venue_id = serializers.IntegerField(source='venue.id', read_only=True)
+
     class Meta:
         model = Slot
-        fields = ['id', 'date', 'start_time', 'end_time']
+        fields = ['id', 'venue_id', 'date', 'start_time', 'end_time', 'is_booked']
 
 
 class VenueMinimalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Venue
-        fields = ['id', 'name', 'sport_type', 'location']
+        fields = ['id', 'name', 'sport_type', 'location', 'description', 'image_url', 'price_per_hour']
 
 
 class BookingSerializer(serializers.ModelSerializer):

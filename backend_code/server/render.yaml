@@ -9,9 +9,10 @@ services:
     name: quickslot-api
     plan: free
     runtime: python
-    rootDir: server
+    rootDir: backend_code/server
     buildCommand: |
       pip install -r requirements.txt
+      python manage.py collectstatic --noinput
       python manage.py migrate
       python manage.py seed
     startCommand: gunicorn quickslot.wsgi --bind 0.0.0.0:$PORT

@@ -1,0 +1,32 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "QuickSlot — iOS Simulator",
+      "request": "launch",
+      "type": "dart",
+      "program": "flutter_app/lib/main.dart",
+      "args": [
+        "--dart-define=API_BASE_URL=http://127.0.0.1:8000/api"
+      ]
+    },
+    {
+      "name": "QuickSlot — Android Emulator",
+      "request": "launch",
+      "type": "dart",
+      "program": "flutter_app/lib/main.dart",
+      "args": [
+        "--dart-define=API_BASE_URL=http://10.0.2.2:8000/api"
+      ]
+    },
+    {
+      "name": "QuickSlot — Render (production)",
+      "request": "launch",
+      "type": "dart",
+      "program": "flutter_app/lib/main.dart",
+      "args": [
+        "--dart-define=API_BASE_URL=https://quickslot-api.onrender.com/api"
+      ]
+    }
+  ]
+}

@@ -68,6 +68,21 @@ This is the core hard requirement. Two layers of defense:
 
 ---
 
+## 🌐 Live Backend
+
+The backend is deployed on Render (free tier):
+
+| | |
+|---|---|
+| **API base URL** | `https://quickslot-api-7p9g.onrender.com/api/` |
+| **Health check** | `GET https://quickslot-api-7p9g.onrender.com/api/health/` |
+
+The Flutter app defaults to this URL with no `--dart-define` flag needed — just `flutter run`.
+
+> **Note on cold starts**: Render's free tier spins down after 15 min of inactivity. The first request after a sleep takes ~30 seconds. Subsequent requests are normal speed.
+
+---
+
 ## 🚀 Setup & Run
 
 ### Prerequisites
@@ -115,15 +130,20 @@ cd flutter_app
 # Install dependencies
 flutter pub get
 
-# Run on Android emulator (default — uses 10.0.2.2:8000)
+# Run against deployed Render backend (default — no flag needed)
 flutter run
 
-# Run on physical device (replace with your machine's LAN IP)
-flutter run --dart-define=API_BASE_URL=http://192.168.x.x:8000/api
+# Run against local backend on iOS Simulator
+flutter run --dart-define=API_BASE_URL=http://127.0.0.1:8000/api
 
-# Run against deployed Render backend
-flutter run --dart-define=API_BASE_URL=https://quickslot-api.onrender.com/api
+# Run against local backend on Android emulator
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:8000/api
+
+# Run against local backend on a physical device (replace with your LAN IP)
+flutter run --dart-define=API_BASE_URL=http://192.168.x.x:8000/api
 ```
+
+**VS Code shortcut** — a `.vscode/launch.json` is included at the repo root. Open the Run & Debug panel (`⌘⇧D`), select the desired config, and press **F5** — no CLI flags needed.
 
 ---
 
@@ -155,6 +175,52 @@ flutter run --dart-define=API_BASE_URL=https://quickslot-api.onrender.com/api
 | 4 | **Dockerized backend** | `Dockerfile` (Python 3.12-slim + Gunicorn) + `docker-compose.yml` (Postgres 16 + Django) — `docker compose up` runs everything |
 | 5 | **Filter slots by time of day** | `_TimeFilter` enum (All / Morning / Afternoon / Evening) with `FilterChip` row on venue detail screen |
 | 🎁 | **Google Sign-In** | Full OAuth flow: `google_sign_in` → Firebase credential → backend sync. Works alongside email/password auth |
+
+---
+
+## 🐛 Bugs & Issues Encountered During Development
+
+Real code bugs hit during the build — documented for transparency.
+
+---
+
+### 1. `SlotModel.fromJson()` / `UserModel.fromJson()` used wrong field keys → silent nulls
+
+**Problem**: `SlotModel.fromJson()` read `json['venue']` for the venue ID, but the Django serializer returned `json['venue_id']` (defined with `source='venue.id'`). `UserModel.fromJson()` read `json['uid']` while the backend returned `firebase_uid`. Both produced silent `null` values at parse time — the slot grid rendered but venue associations were broken, and user objects had no UID.
+
+**Fix**: Corrected both model `fromJson()` keys to match the actual serializer output, and expanded the backend serializers to explicitly include all fields the app reads.
+
+---
+
+### 2. `AuthBloc` emitted `AuthUnauthenticated` on app relaunch even with a valid Firebase session
+
+**Problem**: On startup, `AuthCheckStatus` fires. If `isLoggedIn` is `true` it calls `refreshUser()` → `POST /auth/sync/` to re-sync the user with the backend. When the backend returned an error (in this case Firebase Admin SDK had silently failed to initialise due to a wrong credentials path), the catch block unconditionally emitted `AuthUnauthenticated`, kicking the user back to the login screen even though their Firebase token was perfectly valid. The error surfaced as "Session expired. Please log in again." — misleading because the session was not expired.
+
+**Fix**: Traced the 401 to the Firebase Admin SDK not being initialised. The `.env` had `FIREBASE_CREDENTIALS_PATH=./swades-hackathon-...json`; the `./` resolved relative to `backend_code/server/` where the file doesn't exist. The middleware's `__init__` silently swallowed the `RuntimeError` with a warning, so every `verify_id_token()` call failed. Fixed the path to `../swades-hackathon-...json`.
+
+---
+
+### 3. `SlotBloc` polling called `getSlots()` (full reload) instead of the delta endpoint
+
+**Problem**: `_onPollingTick` called `_venueRepository.getSlots()` — a full fetch of all slots — every 10 seconds. The backend already had `GET /venues/{id}/slots/poll/?date=&since=` returning only slots modified after a given timestamp, but it was never wired up on the Flutter side.
+
+**Fix**: Added `DateTime? _lastSyncTime` to `SlotBloc`. After each full fetch the timestamp is recorded. On every polling tick, `getSlotsDelta(venueId, date, since)` is called instead. Returned slots are merged into the existing list by ID and re-sorted by `start_time`. If the currently selected slot appears in the delta with `is_booked: true`, it is deselected automatically.
+
+---
+
+### 4. `BookingRepository.getMyBookings()` return type changed but `BookingBloc` not updated → type error at runtime
+
+**Problem**: After adding the offline cache, `getMyBookings()` was changed to return `({List<BookingModel> bookings, bool fromCache})` (a Dart record) instead of `List<BookingModel>`. The `BookingBloc._onFetch` handler still destructured the result as a plain list, causing a type mismatch at runtime.
+
+**Fix**: Updated `_onFetch` to destructure the named record fields (`result.bookings`, `result.fromCache`) and pass `fromCache` through to the `BookingLoaded` state so the UI can show the "Showing cached data" banner.
+
+---
+
+### 5. Widget tree compile error after adding the offline cache banner
+
+**Problem**: When inserting the "Showing cached data" banner, the `RefreshIndicator` was wrapped in `Column → Expanded` but the closing parentheses for `Expanded` and `Column` were never added, leaving the widget tree unbalanced and producing a parser-level compile error.
+
+**Fix**: Added the missing closing braces to correctly form `Column → [banner, Expanded → RefreshIndicator → ListView]`.
 
 ---
 

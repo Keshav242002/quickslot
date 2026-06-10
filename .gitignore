@@ -12,6 +12,7 @@ backend_code/server/db.sqlite3
 # Firebase service-account key — never commit; use FIREBASE_CREDENTIALS_JSON env var
 backend_code/swades-hackathon-*.json
 backend_code/server/.env
+render.env
 
 # ─── macOS ─────────────────────────────────────────────────────────────────────
 .DS_Store

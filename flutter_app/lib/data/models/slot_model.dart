@@ -20,12 +20,14 @@ class SlotModel extends Equatable {
 
   factory SlotModel.fromJson(Map<String, dynamic> json) => SlotModel(
         id: json['id'],
-        venueId: json['venue'],
+        venueId: json['venue_id'] ?? 0,
         date: json['date'],
         startTime: json['start_time'],
         endTime: json['end_time'],
         isBooked: json['is_booked'] ?? false,
       );
+
+  int get startHour => int.parse(startTime.split(':')[0]);
 
   String get displayStartTime => AppDateUtils.formatTime(startTime);
   String get displayEndTime => AppDateUtils.formatTime(endTime);

@@ -13,6 +13,17 @@ import '../widgets/loading_widget.dart';
 import '../widgets/error_widget.dart';
 import '../widgets/empty_state_widget.dart';
 
+enum _TimeFilter { all, morning, afternoon, evening }
+
+extension _TimeFilterLabel on _TimeFilter {
+  String get label => switch (this) {
+        _TimeFilter.all => 'All',
+        _TimeFilter.morning => 'Morning',
+        _TimeFilter.afternoon => 'Afternoon',
+        _TimeFilter.evening => 'Evening',
+      };
+}
+
 class VenueDetailScreen extends StatelessWidget {
   final VenueModel venue;
   const VenueDetailScreen({super.key, required this.venue});
@@ -40,6 +51,7 @@ class _VenueDetailView extends StatefulWidget {
 class _VenueDetailViewState extends State<_VenueDetailView> {
   late DateTime _selectedDate;
   late List<DateTime> _dates;
+  _TimeFilter _timeFilter = _TimeFilter.all;
 
   @override
   void initState() {
@@ -57,6 +69,14 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
         ));
   }
 
+  List<SlotModel> _applyFilter(List<SlotModel> slots) => switch (_timeFilter) {
+        _TimeFilter.all => slots,
+        _TimeFilter.morning => slots.where((s) => s.startHour < 12).toList(),
+        _TimeFilter.afternoon =>
+          slots.where((s) => s.startHour >= 12 && s.startHour < 18).toList(),
+        _TimeFilter.evening => slots.where((s) => s.startHour >= 18).toList(),
+      };
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -68,8 +88,12 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
               const SnackBar(
                 content: Text('✅ Booking confirmed!'),
                 backgroundColor: AppTheme.availableColor,
+                duration: Duration(seconds: 1),
               ),
             );
+            Future.delayed(const Duration(seconds: 1), () {
+              if (context.mounted) Navigator.pop(context, true);
+            });
           } else if (state is SlotBookingConflict) {
             _showConflictDialog(context, state.message);
           } else if (state is SlotError) {
@@ -85,9 +109,10 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
                 slivers: [
                   SliverToBoxAdapter(child: _buildVenueInfo(context)),
                   SliverToBoxAdapter(child: _buildDatePicker(context)),
+                  SliverToBoxAdapter(child: _buildFilterChips()),
                   SliverToBoxAdapter(
                     child: Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                       child: Text('Available Slots',
                           style: Theme.of(context).textTheme.titleMedium),
                     ),
@@ -162,7 +187,10 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
               AppDateUtils.formatDate(_selectedDate);
           return GestureDetector(
             onTap: () {
-              setState(() => _selectedDate = date);
+              setState(() {
+                _selectedDate = date;
+                _timeFilter = _TimeFilter.all;
+              });
               _fetchSlots();
             },
             child: AnimatedContainer(
@@ -204,6 +232,42 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
     );
   }
 
+  Widget _buildFilterChips() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
+          children: _TimeFilter.values.map((filter) {
+            final isSelected = _timeFilter == filter;
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FilterChip(
+                label: Text(filter.label),
+                selected: isSelected,
+                onSelected: (_) => setState(() => _timeFilter = filter),
+                selectedColor: AppTheme.accentGreen.withAlpha(51),
+                checkmarkColor: AppTheme.accentGreen,
+                labelStyle: TextStyle(
+                  color: isSelected ? AppTheme.accentGreen : AppTheme.textSecondary,
+                  fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+                  fontSize: 13,
+                ),
+                side: BorderSide(
+                  color: isSelected
+                      ? AppTheme.accentGreen
+                      : Colors.white.withAlpha(31),
+                ),
+                backgroundColor: AppTheme.cardColor,
+                padding: const EdgeInsets.symmetric(horizontal: 4),
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
   Widget _buildSlotSection() {
     return BlocBuilder<SlotBloc, SlotState>(
       builder: (context, state) {
@@ -221,25 +285,45 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
           );
         }
 
-        List<SlotModel> slots = [];
+        List<SlotModel> allSlots = [];
         int? selectedId;
         int? bookingId;
 
         if (state is SlotLoaded) {
-          slots = state.slots;
+          allSlots = state.slots;
           selectedId = state.selectedSlotId;
         } else if (state is SlotBookingInProgress) {
-          slots = state.slots;
+          allSlots = state.slots;
           bookingId = state.bookingSlotId;
         }
 
-        if (slots.isEmpty) return const SizedBox.shrink();
+        if (allSlots.isEmpty) return const SizedBox.shrink();
+
+        final displaySlots = _applyFilter(allSlots);
+
+        if (displaySlots.isEmpty) {
+          return AppEmptyWidget(
+            title: 'No ${_timeFilter.label.toLowerCase()} slots',
+            subtitle: 'Try a different time filter.',
+            icon: Icons.schedule_rounded,
+          );
+        }
 
         return SlotGrid(
-          slots: slots,
+          slots: displaySlots,
           selectedSlotId: selectedId,
           bookingSlotId: bookingId,
           onSlotTap: (slot) {
+            if (slot.isBooked) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('This slot is already booked.'),
+                  backgroundColor: AppTheme.errorColor,
+                  duration: Duration(seconds: 2),
+                ),
+              );
+              return;
+            }
             context.read<SlotBloc>().add(SlotSelected(slotId: slot.id));
           },
         );
@@ -253,7 +337,11 @@ class _VenueDetailViewState extends State<_VenueDetailView> {
         if (state is! SlotLoaded || state.selectedSlotId == null) {
           return const SizedBox.shrink();
         }
-        final slot = state.slots.firstWhere((s) => s.id == state.selectedSlotId);
+        // Hide book button if selected slot is filtered out
+        final displayed = _applyFilter(state.slots);
+        final slot = displayed.where((s) => s.id == state.selectedSlotId).firstOrNull;
+        if (slot == null) return const SizedBox.shrink();
+
         return Container(
           padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
           decoration: BoxDecoration(

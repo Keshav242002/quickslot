@@ -13,7 +13,7 @@ class SlotSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Slot
-        fields = ['id', 'venue_id', 'date', 'start_time', 'end_time', 'is_booked']
+        fields = ['id', 'venue_id', 'date', 'start_time', 'end_time', 'is_booked', 'updated_at']
 
 
 class SlotMinimalSerializer(serializers.ModelSerializer):

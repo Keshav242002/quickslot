@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django.db import IntegrityError
+from django.utils.dateparse import parse_datetime
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -111,3 +112,34 @@ class UserBookingListView(APIView):
 class AuthSyncView(APIView):
     def post(self, request):
         return Response(UserSerializer(request.firebase_user).data)
+
+
+class SlotPollView(APIView):
+    def get(self, request, pk):
+        date_param = request.query_params.get('date')
+        since_param = request.query_params.get('since')
+        if not date_param or not since_param:
+            return Response(
+                {"error": "missing_param", "message": "Both 'date' (YYYY-MM-DD) and 'since' (ISO 8601) are required"},
+                status=400,
+            )
+        try:
+            target_date = datetime.strptime(date_param, '%Y-%m-%d').date()
+        except ValueError:
+            return Response(
+                {"error": "invalid_date", "message": "Date must be in YYYY-MM-DD format"},
+                status=400,
+            )
+        since_dt = parse_datetime(since_param.replace('Z', '+00:00'))
+        if since_dt is None:
+            return Response(
+                {"error": "invalid_since", "message": "Parameter 'since' must be a valid ISO 8601 datetime"},
+                status=400,
+            )
+        try:
+            venue = Venue.objects.get(pk=pk)
+        except Venue.DoesNotExist:
+            return Response({"error": "not_found", "message": "Venue not found"}, status=404)
+
+        slots = Slot.objects.filter(venue=venue, date=target_date, updated_at__gt=since_dt)
+        return Response(SlotSerializer(slots, many=True).data)

@@ -8,4 +8,5 @@ urlpatterns = [
     path('bookings/<int:pk>/', views.BookingDeleteView.as_view()),
     path('me/bookings/', views.UserBookingListView.as_view()),
     path('auth/sync/', views.AuthSyncView.as_view()),
+    path('venues/<int:pk>/slots/poll/', views.SlotPollView.as_view()),
 ]

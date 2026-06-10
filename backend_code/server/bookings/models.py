@@ -36,6 +36,7 @@ class Slot(models.Model):
     start_time = models.TimeField()
     end_time = models.TimeField()
     is_booked = models.BooleanField(default=False)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ('venue', 'date', 'start_time')

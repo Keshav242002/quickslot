@@ -1,6 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../constants/api_constants.dart';
+import '../utils/app_logger.dart';
 import 'api_exceptions.dart';
 
 class ApiClient {
@@ -21,10 +22,27 @@ class ApiClient {
           final token = await user.getIdToken();
           options.headers['Authorization'] = 'Bearer $token';
         }
+        AppLogger.api(
+          '--> ${options.method} ${options.uri}'
+          '${options.data != null ? ' | body: ${options.data}' : ''}',
+        );
         handler.next(options);
       },
+      onResponse: (response, handler) {
+        AppLogger.api(
+          '<-- ${response.statusCode} ${response.requestOptions.method} ${response.requestOptions.uri}',
+        );
+        handler.next(response);
+      },
       onError: (error, handler) {
-        handler.reject(_transformError(error));
+        final transformed = _transformError(error);
+        AppLogger.error(
+          '<-- ERROR ${error.response?.statusCode ?? error.type.name} '
+          '${error.requestOptions.method} ${error.requestOptions.uri} '
+          '| ${transformed.message}'
+          '${error.error != null ? ' | raw: ${error.error}' : ''}',
+        );
+        handler.reject(transformed);
       },
     ));
   }
@@ -32,9 +50,19 @@ class ApiClient {
   DioException _transformError(DioException error) {
     ApiException? apiException;
 
-    if (error.type == DioExceptionType.connectionError ||
+    if (error.type == DioExceptionType.connectionTimeout ||
+        error.type == DioExceptionType.receiveTimeout ||
+        error.type == DioExceptionType.sendTimeout) {
+      apiException = const ApiException('Request timed out. The server may be down.');
+    } else if (error.type == DioExceptionType.connectionError ||
         error.type == DioExceptionType.unknown) {
-      apiException = const NetworkException();
+      final inner = error.error?.toString() ?? error.message ?? '';
+      final isRefused = inner.contains('Connection refused') ||
+          inner.contains('ECONNREFUSED') ||
+          inner.contains('Failed to connect');
+      apiException = isRefused
+          ? const ApiException('Cannot reach the server. Make sure the backend is running.')
+          : const NetworkException();
     } else if (error.response != null) {
       switch (error.response!.statusCode) {
         case 401:

@@ -12,7 +12,8 @@ import '../widgets/empty_state_widget.dart';
 import 'venue_detail_screen.dart';
 
 class VenueListScreen extends StatefulWidget {
-  const VenueListScreen({super.key});
+  final VoidCallback? onBookingSuccess;
+  const VenueListScreen({super.key, this.onBookingSuccess});
 
   @override
   State<VenueListScreen> createState() => _VenueListScreenState();
@@ -94,12 +95,14 @@ class _VenueListScreenState extends State<VenueListScreen> {
                 child: FadeInAnimation(
                   child: VenueCard(
                     venue: venues[index],
-                    onTap: () => Navigator.push(
+                    onTap: () => Navigator.push<bool>(
                       context,
                       MaterialPageRoute(
                         builder: (_) => VenueDetailScreen(venue: venues[index]),
                       ),
-                    ),
+                    ).then((booked) {
+                      if (booked == true) widget.onBookingSuccess?.call();
+                    }),
                   ),
                 ),
               ),

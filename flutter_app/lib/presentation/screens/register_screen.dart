@@ -43,7 +43,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
-          if (state is AuthError) {
+          if (state is AuthAuthenticated) {
+            Navigator.of(context).popUntil((route) => route.isFirst);
+          } else if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(state.message), backgroundColor: AppTheme.errorColor),
             );

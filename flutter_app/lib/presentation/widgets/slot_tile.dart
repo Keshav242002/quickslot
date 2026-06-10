@@ -37,7 +37,7 @@ class SlotTile extends StatelessWidget {
     }
 
     return GestureDetector(
-      onTap: slot.isBooked ? null : onTap,
+      onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         decoration: BoxDecoration(

@@ -11,6 +11,9 @@
 | B4 | Done | `select_for_update` + atomic + DB unique constraint |
 | B5 | Done | Firebase Auth middleware + `/api/auth/sync/` endpoint |
 | B6 | Done | Procfile + render.yaml deployment config |
+| B7 | Done | Google Sign-In supported via Firebase middleware (no extra code needed) |
+| B8 | Done | `GET /api/venues/{id}/slots/poll/?date=&since=` — returns slots modified after timestamp |
+| B9 | Done | Dockerfile + docker-compose.yml (PostgreSQL 16) + 9 concurrency/booking tests |
 
 ## API Endpoints
 
@@ -23,6 +26,7 @@
 | GET | `/api/me/bookings/` | Bearer | Current user's bookings |
 | DELETE | `/api/bookings/{id}/` | Bearer | Cancel a booking |
 | GET | `/api/health/` | None | Health check |
+| GET | `/api/venues/{id}/slots/poll/?date=YYYY-MM-DD&since=ISO8601` | Bearer | Slots changed after timestamp |
 
 ## Running Locally
 

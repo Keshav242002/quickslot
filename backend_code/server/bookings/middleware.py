@@ -68,6 +68,9 @@ class FirebaseAuthMiddleware:
                 status=401,
             )
 
+        # auth.verify_id_token works identically for email/password AND Google Sign-In tokens —
+        # the Firebase SDK normalises both into the same decoded payload shape, so no provider-specific
+        # handling is needed here.
         firebase_uid = decoded['uid']
         email = decoded.get('email', '')
         name = decoded.get('name', '') or decoded.get('display_name', '') or email.split('@')[0]

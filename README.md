@@ -295,4 +295,4 @@ feat(app): offline read cache for My Bookings via SharedPreferences
 
 ## 📝 License
 
-Built for the Swades QuickSlot Hiring Hackathon. Not for production use.
+Built as a personal project for learning purpose. Not for production use.

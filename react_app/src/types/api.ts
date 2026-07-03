@@ -31,3 +31,7 @@ export interface BackendUser {
   email: string;
   display_name: string;
 }
+
+export type SlotStatus = 'available' | 'booked' | 'selected' | 'booking';
+
+export type TimeFilter = 'all' | 'morning' | 'afternoon' | 'evening';

@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom';
 import clsx from 'clsx';
+import { SignOutButton } from './SignOutButton';
 import styles from './BottomNav.module.css';
 
 const TABS = [
@@ -20,6 +21,7 @@ export function BottomNav() {
           <span>{tab.label}</span>
         </NavLink>
       ))}
+      <SignOutButton />
     </nav>
   );
 }

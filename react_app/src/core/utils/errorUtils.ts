@@ -1,5 +1,12 @@
 import { isAxiosError } from 'axios';
 
+export class SlotAlreadyBookedError extends Error {
+  constructor(message = 'This slot is already booked') {
+    super(message);
+    this.name = 'SlotAlreadyBookedError';
+  }
+}
+
 export function parseApiError(err: unknown): string {
   if (isAxiosError(err)) {
     const status = err.response?.status;

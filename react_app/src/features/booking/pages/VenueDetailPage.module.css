@@ -1,0 +1,106 @@
+.page {
+  min-height: 100%;
+  padding-bottom: 96px;
+}
+
+.appBar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--color-bg-surface);
+}
+
+.backButton {
+  background: none;
+  border: none;
+  color: var(--color-text-primary);
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.appBarTitle {
+  font-weight: 700;
+  font-size: 16px;
+  color: var(--color-text-primary);
+}
+
+.hero {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  background: var(--color-bg-surface);
+}
+
+.heroPlaceholder {
+  width: 100%;
+  height: 200px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 56px;
+  background: linear-gradient(135deg, var(--color-bg-surface), var(--color-bg-card));
+}
+
+.content {
+  padding: 16px 20px 24px;
+}
+
+.infoCard {
+  background: var(--color-bg-card);
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  margin-bottom: 20px;
+}
+
+.name {
+  margin: 0 0 4px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.meta {
+  margin: 0 0 4px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.price {
+  margin: 8px 0 0;
+  font-weight: 600;
+  color: var(--color-accent-green);
+}
+
+.description {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.sectionLabel {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.stickyBar {
+  position: sticky;
+  bottom: 0;
+  padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+  background: rgba(10, 14, 23, 0.85);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.stickyBar > * {
+  width: 100%;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}

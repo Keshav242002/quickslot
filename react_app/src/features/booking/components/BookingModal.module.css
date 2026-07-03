@@ -1,0 +1,18 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 14px;
+  color: var(--color-text-primary);
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.actions > * {
+  flex: 1;
+}

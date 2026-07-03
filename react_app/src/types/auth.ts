@@ -5,4 +5,5 @@ export interface AuthState {
   firebaseUser: FirebaseUser | null;
   backendUser: BackendUser | null;
   loading: boolean;
+  error: string | null;
 }
